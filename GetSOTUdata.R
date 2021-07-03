@@ -4,6 +4,7 @@
 library(tidyverse) 
 library(rvest)
 library(lubridate)
+library(data.table)
 
 #package to get SOTU addresses is:
 library(sotu)
@@ -79,6 +80,6 @@ sotu_final <- rbind(sotu, sotu2)
 
 
 #save dataset as csv
-fwrit
+fwrite(sotu_final, "sotu_final.csv")
 
 
