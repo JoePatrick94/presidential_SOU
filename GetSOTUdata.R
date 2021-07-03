@@ -16,12 +16,6 @@ sotu$text <- sotu_text
 
 #SOTU package is missing trump and biden speeches, so we need to pull these speeches and combine them in this data set
 SOTUlistpage <- read_html("https://www.presidency.ucsb.edu/documents/app-categories/spoken-addresses-and-remarks/presidential/state-the-union-addresses")
-#need to turn this into a dataset that we can match with the sotu dataset
-#lets build a function that can turn the html into this tidy dataset
-# each speech starts with The President. Can start here.
-# each speech ends with NOTE: - end here
-# each paragraph is a element within a character vector - need to combine each into a single vector
-#html children looks at child nodes, which allows us to see who is talking. We will probably want to filter for just the president
 
 #Get president name
 president <- SOTUlistpage %>% html_nodes(".margin-top a") %>%
@@ -63,18 +57,28 @@ party <- sapply(presidential_biolinks, get_party)
 #Get the SOTU text
 get_speech <- function(SOTU_pagelinks){
   sotulink <- read_html(SOTU_pagelinks) 
-  sotulink <- read_html("https://www.presidency.ucsb.edu/documents/address-before-joint-session-the-congress-the-state-the-union-27")
   text <- sotulink %>% 
     html_nodes(".field-docs-content") %>% 
     html_text() %>%
-    str_replace_all(x, "\\s*\\[[^\\]]+\\]", "") %>% #remove bracket text, such as ...[laughter]...
-    str_replace_all(x, "\n","") %>% #remove instances of \n
-    str_replace_all(x, "\n")
-  text
+    str_replace_all("\\s*\\[[^\\]]+\\]", "") %>% #remove bracket text, such as ...[laughter]...
+    str_replace_all("\n","") %>% #remove instances of \n
+    str_replace_all("Audience Members.*The President\\.", "") %>% #Take out text from The Audience. --> The President.
+    str_replace_all("The President\\.", "") %>% # Take out text indicating the president is speaking -> The President.
+    trimws(which = "both")
   return(text)
 }
 
-#take out anything with [text], all instances of \n
-#take out all text that says Audience members to The President. 
+text <- sapply(SOTU_pagelinks, get_speech)
+
+
+#Make Data frame
+sotu2 <- data.frame(president, year, years_active, party, sotu_type = "speech", text)
+
+#combine sotu datasets
+sotu_final <- rbind(sotu, sotu2)
+
+
+#save dataset as csv
+fwrit
 
 
