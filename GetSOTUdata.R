@@ -6,56 +6,28 @@ library(rvest)
 library(lubridate)
 library(data.table)
 
-#package to get SOTU addresses is:
-library(sotu)
+#set working directory
+setwd("~/Personal/presidential_SOU")
 
-#make dataset
-sotu <- sotu_meta
-
-#connect metadata with text
-sotu$text <- sotu_text
-
-#SOTU package is missing trump and biden speeches, so we need to pull these speeches and combine them in this data set
-SOTUlistpage <- read_html("https://www.presidency.ucsb.edu/documents/app-categories/spoken-addresses-and-remarks/presidential/state-the-union-addresses")
-
-#Get president name
-president <- SOTUlistpage %>% html_nodes(".margin-top a") %>%
-  html_text()
-
-#Get year of SOTU speech
-year <- SOTUlistpage %>% html_nodes(".date-display-single") %>%
-  html_text() %>% str_sub(-4) %>% as.numeric()
-
-#Get years active of president
-SOTU_pagelinks <- SOTUlistpage %>%
-  html_nodes(".field-title a") %>%
-  html_attr("href") %>% paste("https://www.presidency.ucsb.edu",., sep="")
-
+#Function to get the years active of a president
 get_years_active <- function(SOTU_pagelinks){
   
   sotupage <- read_html(SOTU_pagelinks)
-  years_active <- sotupage %>% html_nodes(".dates") %>% html_text() %>% gsub("\\s+", "",.)
+  years_active <- sotupage %>% 
+    html_nodes(".dates") %>%
+    html_text() %>% 
+    gsub("\\s+", "",.)
   return(years_active)
 }
-  
-years_active <- sapply(SOTU_pagelinks, get_years_active)
 
-#Get the party part of the president
-presidential_biolinks <- SOTUlistpage %>%
-  html_nodes(".margin-top a") %>%
-  html_attr("href") %>%
-  paste("https://www.presidency.ucsb.edu",., sep="")
-
+#Function to get the political party of president
 get_party <- function(presidential_biolinks){
   biopage <- read_html(presidential_biolinks)
   party <- biopage %>% html_nodes("#block-system-main :nth-child(9)") %>% html_text()
   return(party)
 }
 
-party <- sapply(presidential_biolinks, get_party)
-
-
-#Get the SOTU text
+#Function to get the SOTU text for each president
 get_speech <- function(SOTU_pagelinks){
   sotulink <- read_html(SOTU_pagelinks) 
   text <- sotulink %>% 
@@ -69,293 +41,55 @@ get_speech <- function(SOTU_pagelinks){
   return(text)
 }
 
+sotu_df <- data.frame()
+
+for (page_number in seq(from = 0, to = 9,by=1)) {
+
+#State of the Union page that has all the state of the union addresses
+SOTUlistpage <- read_html(paste("https://www.presidency.ucsb.edu/documents/app-categories/spoken-addresses-and-remarks/presidential/state-the-union-addresses?page=",page_number, sep = ""))
+
+#Get president name
+president <- SOTUlistpage %>% 
+  html_nodes(".margin-top a") %>%
+  html_text()
+
+#Get year of SOTU speech
+year <- SOTUlistpage %>% 
+  html_nodes(".date-display-single") %>%
+  html_text() %>%
+  str_sub(-4) %>% 
+  as.numeric()
+
+#Get years active of president
+SOTU_pagelinks <- SOTUlistpage %>%
+  html_nodes(".field-title a") %>%
+  html_attr("href") %>% 
+  paste("https://www.presidency.ucsb.edu",., sep="")
+
+years_active <- sapply(SOTU_pagelinks, get_years_active)
+
+#Get the party part of the president
+presidential_biolinks <- SOTUlistpage %>%
+  html_nodes(".margin-top a") %>%
+  html_attr("href") %>%
+  paste("https://www.presidency.ucsb.edu",., sep="")
+
+party <- sapply(presidential_biolinks, get_party)
+
+
+#Ge the SOTU text
 text <- sapply(SOTU_pagelinks, get_speech)
 
 
-#Make Data frame
-sotu2 <- data.frame(president, year, years_active, party, sotu_type = "speech", text)
+#Combine rows to the final dataset for each loop
+sotu_df <- rbind(sotu_df, data.frame(president, year, years_active, party, speech_type = "speech", text, stringsAsFactors = F))
 
+print(paste("page number:", page_number))
 
-#Get Joe Biden SOTU
-sotu_biden <- data.frame(president = "Biden",
-                         year = 2021, 
-                         years_active = "2021-Present", 
-                         party = "Democratic", 
-                         sotu_type = "speech",
-                         text = c("Thank you. Thank you. Thank you. Good to be back. As Mitch and Chuck will understand, its good to be almost home, down the hall. [Laughter] Anyway, thank you all.
-
-Madam Speaker, Madam Vice President-no President has ever said those words from this podium. No President has ever said those words, and its about time.
-
-First Lady-Im her husband; Second Gentleman; Chief Justice; Members of the United States Congress and the Cabinet; distinguished guests; my fellow Americans: While the setting tonight is familiar, this gathering is just a little bit different, a reminder of the extraordinary times were in.
-
-Throughout our history, Presidents have come to this Chamber to speak to Congress, to the Nation, and to the world; to declare war, to celebrate peace; to announce new plans and possibilities. Tonight I come to talk about crisis and opportunity, about rebuilding the Nation, revitalizing our democracy, and winning the future for America.
-
-I stand here tonight, 1 day shy of the hundredth day of my administration, hundred days since I took the oath of office and lifted my hand off our family Bible and inherited a Nation-we all did-that was in crisis: the worst pandemic in a century, the worst economic crisis since the Great Depression, the worst attack on our democracy since the Civil War.
-
-Now, after just 100 days, I can report to the Nation: America is on the move again, turning peril into possibility, crisis to opportunity, setbacks into strength. We all know life can knock us down. But, in America, we never, ever, ever stay down. Americans always get up. Today, thats what were doing: America is rising anew, choosing hope over fear, truth over lies, and light over darkness.
-
-After 100 days of rescue and renewal, America is ready for takeoff, in my view. Were working again, dreaming again, discovering again, and leading the world again. We have shown each other and the world that theres no quit in America-none.
-
-One hundred days ago, Americas house was on fire. And we had to act. And thanks to the extraordinary leadership of Speaker Pelosi; Majority Leader Schumer; and the overwhelming support of the American people-Democrats, Independents, and Republicans-we did act. Together we passed the American Rescue Plan, one of the most consequential rescue packages in American history. Were already seeing the results. [Applause] Were already seeing the results.
-
-After I promised wed get 100 million COVID-19 vaccine shots into peoples arms in 100 days, we will have provided over 220 million COVID shots in those 100 days. Thanks to all the help of all of you, were marshaling-with your help, everyones help-were marshaling every Federal resource. Weve gotten vaccines to nearly 40,000 pharmacies and over 700 community health centers where the poorest of the poor can be reached. Were setting up community vaccination sites, developing mobile units to get to hard-to-reach communities.
-
-Today, 90 percent of Americans now live within 5 miles of a vaccination site. Everyone over the age of 16-everyone-is now eligible to get vaccinated right now, right away. Go get vaccinated, America. Go and get the vaccination. Theyre available. Youre eligible now.
-
-When I was sworn in on January 20, less than 1 percent of the seniors in America were fully vaccinated against COVID-19. One hundred days later, 70 percent of seniors in America over 65 are protected-fully protected. Senior deaths from COVID-19 are down 80 percent since January-down 80 percent-because of all of you. And more than half of all the adults in America have gotten at least one shot.
-
-At a mass vaccination center in Glendale, Arizona, I asked the nurse-I said, Whats it like? She looked at me, and she said, Its like every shot is giving a dose of hope-was her phrase. A dose of hope.
-
-A dose of hope for an educator in Florida who has a child suffering from an autoimmune disease-wrote to me, said shes worried-that she was worrying about bringing the virus home. She said she then got vaccinated at a large site, in her car. She said she sat in her car, when she got vaccinated and just cried, cried out of joy and cried out of relief.
-
-Parents seeing the smiles on their kids faces, for those who are able to go back to school because the teachers and school bus drivers and cafeteria workers have been vaccinated. Grandparents hugging their children and grandchildren instead of pressing hands against a window to say goodbye. It means everything. Those things mean everything.
-
-You know, theres still-you all know it; you know it better than any group of Americans-theres still more work to do to beat this virus. We cant let our guard down.
-
-But tonight I can say it: Because of you, the American people, our progress these past hundred days against one of the worst pandemics in history has been one of the greatest logistical achievements-logistical achievements-this country has ever seen.
-
-What else have we done in those first hundred days?
-
-We kept our commitment-Democrats and Republicans-of sending $1,400 rescue checks to 85 percent of American households. Weve already sent more than 160 million checks out the door. Its making the difference. You all know it when you go home. For many people, its making all the difference in the world.
-
-The single mom in Texas who wrote to me, she said she couldnt work, but she said the relief check put food on the table and saved her and her son from eviction from their apartment. A grandmother in Virginia who told me she immediately took her granddaughter to the eye doctor, something she said she put off for months because she didnt have the money.
-
-One of the defining images, at least from my perspective, in this crisis has been cars lined up, cars lined up for miles. And not people who just barely ever start those cars, nice cars lined up for miles, waiting for a box of food to be put in their trunk. I dont know about you, but I didnt ever think Id see that in America. And all of this is through no fault of their own. No fault of their own, these people are in this position.
-
-Thats why the Rescue Plan is delivering food and nutrition assistance to millions of Americans facing hunger, and hunger is down sharply already. Were also providing rental assistance-you all know this, but the American people, I want to make sure they understand-keeping people from being evicted from their homes, providing loans to small businesses to reopen and keep their employees on the job.
-
-During these 100 days, an additional 800,000 Americans enrolled in the Affordable Care Act when I established the special signup period to do that-800,000 in that period. Were making one of the largest one-time ever investments-ever-in improving health care for veterans. Critical investments to address the opioid crisis. And, maybe most importantly, thanks to the American Rescue Plan, were on track to cut child poverty in America in half this year.
-
-And, in the process, while this was all going on, the economy created more than 1,300,000 new jobs in 100 days, more jobs in the first 100 days than any President on record. The International Monetary Fund is now estimating our economy will grow at a rate of more than 6 percent this year. That will be the fastest pace of economic growth in this country in nearly four decades.
-
-America is moving-moving forward-but we cant stop now. Were in competition with China and other countries to win the 21st century. Were at a great inflection point in history. We have to do more than just build back better-I mean, build back. We have to build back better. We have to compete more strenuously than we have.
-
-Throughout our history, if you think about it, public investment in infrastructure has literally transformed America: our attitudes, as well as our opportunities. The transcontinental railroad, the interstate highways united two oceans and brought a totally new age of progress to the United States of America. Universal public schools and college aid opened wide the doors of opportunity. Scientific breakthroughs took us to the Moon-now were on Mars-discovering vaccines, gave us the internet, and so much more.
-
-These are the investments we made together as one country, and investments that only the Government was in a position to make. Time and again, they propel us into the future. Thats why I proposed the American Jobs Plan, a once-in-a-generation investment in America itself. This is the largest jobs plan since World War II. It creates jobs to upgrade our transportation infrastructure; jobs modernizing our roads, bridges, highways; jobs building ports and airports, rail corridors, transit lines.
-
-Its clean water. And, today, up to 10 million homes in America and more than 400,000 schools and childcare centers have pipes with lead in them, including in drinking water, a clear and present danger to our childrens health.
-
-The American Jobs Plan creates jobs replacing 100 percent of the Nations lead pipes and service lines so every American can drink clean water. And, in the process, it will create thousands and thousands of good-paying jobs. It creates jobs connecting every American with high-speed internet, including 35 percent of the rural America that still doesnt have it. This is going to help our kids and our businesses succeed in the 21st-century economy.
-
-And Im asking the Vice President to lead this effort, if she would--
-
-Vice President Kamala D. Harris. Of course.
-
-The President. --because I know it will get done. It creates jobs, building a modern power grid. Our grids are vulnerable to storms, hacks, catastrophic failures, with tragic results, as we saw in Texas and elsewhere during the winter storms. The American Jobs Plan will create jobs that will lay thousands of miles of transmission lines needed to build a resilient and fully clean grid. We can do that.
-
-Look, the American Jobs Plan will help millions of people get back to their jobs and back to their careers. Two million women have dropped out of the workforce during this pandemic-2 million, and too often because they couldnt get the care they needed to care for their child or care for an elderly parent who needs help.
-
-Eight hundred thousand families are on a Medicare waiting list right now to get homecare for their aging parent or loved one with a disability. If you think its not important, check out in your own district, Democrat or Republican. Democrat or Republican voters, their great concern-almost as much as their children-is taking care of an elderly loved one who cant be left alone. Medicaid contemplated it, but this plan is going to help those families and create jobs for our caregivers with better wages and better benefits, continuing a cycle of growth.
-
-For too long, weve failed to use the most important word when it comes to meeting the climate crisis: jobs. Jobs. Jobs. For me, when I think climate change, I think jobs.
-
-The American Jobs Plan will put engineers and construction workers to work building more energy-efficient buildings and homes; electrical workers-IBEW members-installing 500,000 charging stations along our highways so we can own the electric car market. Farmers-farmers planting cover crops so they can reduce the carbon dioxide in the air and get paid for doing it.
-
-Look, but think about it: There is simply no reason why the blades for wind turbines cant be built in Pittsburgh instead of Beijing. No reason. None. No reason. So, folks, theres no reason why American workers cant lead the world in the production of electric vehicles and batteries. I mean, there is no reason. We have this capacity. We have the brightest, best trained people in the world.
-
-The American Jobs Plan is going to create millions of good-paying jobs-jobs Americans can raise a family on-as my dad would then say, with a little breathing room. And all the investments in the American Jobs Plan will be guided by one principle: buy American. Buy American. And I might note, parenthetically, that does not violate any trade agreement. Its been the law since the thirties: buy American.
-
-American tax dollars are going to be used to buy American products made in America to create American jobs. Thats the way its supposed to be and it will be in this administration. And I made it clear to all my Cabinet people. Their ability to give exemptions has been strenuously limited. It will be American products.
-
-Now I know some of you at home are wondering whether these jobs are for you. So many of you-so many of the folks I grew up with-feel left behind, forgotten in an economy thats so rapidly changing its frightening. I want to speak directly to you. Because if you think about it, thats what people are most worried about: Can I fit in?
-
-Independent experts estimate the American Jobs Plan will add millions of jobs and trillions of dollars to economic growth in the years to come. It is an 8-year program. These are good-paying jobs that cant be outsourced.
-
-Nearly 90 percent of the infrastructure jobs created in the American Jobs Plan do not require a college degree; 75 percent dont require an associates degree. The American Jobs Plan is a blue-collar blueprint to build America. Thats what it is.
-
-And it recognizes something Ive always said in this Chamber and the other. Good guys and women on Wall Street, but Wall Street didnt build this country. The middle class built the country, and unions built the middle class. So thats why Im calling on Congress to pass the Protect the Right to Organize Act-the PRO Act-and send it to my desk so we can support the right to unionize.
-
-And by the way, while youre thinking about sending things to my desk-[laughter]-lets raise the minimum wage to $15. No one-no one working 40 hours a week-no one working 40 hours a week should live below the poverty line.
-
-We need to ensure greater equity and opportunity for women. And while were doing this, lets get the Paycheck Fairness Act to my desk as well-equal pay. Its been much too long. And if youre wondering whether its too long, look behind me.
-
-And finally, the American Jobs Plan will be the biggest increase in nondefense research and development on record. We will see more technological change-and some of you know more about this than I do-well see more technological change in the next 10 years than we saw in the last 50. Thats how rapidly artificial intelligence and so much more is changing.
-
-And were falling behind the competition with the rest of the world. Decades ago, we used to invest 2 percent of our gross domestic product in America-2 percent of our gross domestic product-in research and development.
-
-Today, Mr. Secretary, thats less than 1 percent. China and other countries are closing in fast. We have to develop and dominate the products and technologies of the future: advanced batteries, biotechnology, computer chips, clean energy.
-
-The Secretary of Defense can tell you-and those of you on-who work on national security issues know-the Defense Department has an agency called DARPA-the Defense Advanced Research Project Agency. The people who set up before I came here-and thats been a long time ago-to develop breakthroughs that enhance our national security-thats their only job. And its a semiseparate agency; its under the Defense Department. Its led to everything from the discovery of the internet to GPS and so much more thats enhanced our security.
-
-The National Institute of Health-the NIH-I believe, should create a similar Advanced Research Projects Agency for Health. And that would-heres what it would do. It would have a singular purpose: to develop breakthroughs to prevent, detect, and treat diseases like Alzheimers, diabetes, and cancer.
-
-Ill still never forget when we passed the cancer proposal the last year I was Vice President-almost $9 million going to NIH. And if you excuse the point of personal privilege, Ill never forget you standing, Mitch, and saying youd name it after my deceased son. It meant a lot.
-
-But so many of us have deceased sons, daughters, and relatives who died of cancer. I can think of no more worthy investment. I know of nothing that is more bipartisan. So lets end cancer as we know it. Its within our power. Its within our power to do it.
-
-Investments in jobs and infrastructure, like the ones were talking about, have often had bipartisan support in the past. Vice President Harris and I met regularly in the Oval Office with Democrats and Republicans to discuss the Jobs Plan. And I applaud a group of Republican Senators who just put forward their own proposal.
-
-So lets get to work. I wanted to lay out, before the Congress, my plan before we got into the deep discussions. Id like to meet with those who have ideas that are different-they think are better. I welcome those ideas.
-
-But the rest of the world is not waiting for us. I just want to be clear: From my perspective, doing nothing is not an option. Look, we cant be so busy competing with one another that we forget the competition that we have with the rest of the world to win the 21st century.
-
-Secretary Blinken can tell you, I spent a lot of time with President Xi: traveled over 17,000 miles with him; spent, they tell me, over 24 hours in private discussions with him. When he called to congratulate me, we had a 2-hour discussion. Hes deadly earnest about becoming the most significant, consequential nation in the world. He and others-autocrats-think that democracy cant compete in the 21st century with autocracies because it takes too long to get consensus.
-
-To win that competition for the future, in my view, we also need to make a once-in-a-generation investment in our families and our children. Thats why Ive introduced the American Families Plan tonight, which addresses four of the biggest challenges facing American families and, in turn, America.
-
-First is access to a good education. When this Nation made 12 years of public education universal in the last century, it made us the best educated, best prepared Nation in the world. Its, I believe, the overwhelming reason that propelled us to where we got in the 21st-in the 20th century.
-
-But the world has caught up, or catching up. They are not waiting. I would say, parenthetically: If we were sitting down, put a bipartisan committee together and said, Okay, were going to decide what we do in terms of government providing for free education, I wonder whether wed think, as we did in the 20th century, that 12 years is enough in the 21st century. I doubt it. Twelve years is no longer enough today to compete with the rest of the world in the 21st century. Thats why my American Families Plan guarantees 4 additional years of public education for every person in America, starting as early as we can.
-
-The great universities of this country have conducted studies over the last 10 years. It shows that adding 2 years of universal high-quality preschool for every 3-year-old and 4-year-old, no matter what background they come from, it puts them in the position to be able to compete all the way through 12 years. It increases exponentially their prospect of graduating and going on beyond graduation. The research shows when a young child goes to school-not daycare-they are far more likely to graduate from high school and go to college or something after high school.
-
-When you add 2 years of free community college on top of that, you begin to change the dynamic. We can do that.
-
-And well increase Pell Grants and invest in Historical Black Colleges and Universities, Tribal Colleges, Minority-Serving Institutions. The reason is: They dont have the endowments, but their students are just as capable of learning about cybersecurity, just as capable of learning about metallurgy-all the things that are going on that provide those jobs of the future.
-
-Jill is a community college professor who teaches today as First Lady. Shes long said-if Ive heard it once, Ive heard it a thousand times: Joe, any country that outeducates us is going to outcompete us. Shell be deeply involved in leading this effort. Thank you, Jill.
-
-Second thing we need: American Families Plan will provide access to quality, affordable childcare. We guarantee-and Im proposing a legislation to guarantee that low- and middle-income families will pay no more than 7 percent of their income for high-quality care for children up to the age of 5. The most hard-pressed working families wont have to spend a dime.
-
-Third, the American Families Plan will finally provide up to 12 weeks of paid leave and medical leave-family and medical leave. Were one of the few industrial countries in the world. No one should have to choose between a job and paycheck or taking care of themselves and their loved ones-a parent, a spouse, or child.
-                                  
-                                  And fourth, the American Family Plan puts directly into the pockets of millions of Americans. In March, we expanded a tax credit for every child in a family. Up to $3,000 per child, if theyre under 6 years of age-I mean, excuse me-under-over [under]* 6 years of age, and $3,600 for children over 6 years of age.
-
-With two parents, two kids, thats $7,200 in the pockets thats going to help to take care of your family. And that will help more than 65 million children and help cut childcare [child]* poverty in half. And we can afford it. So we did that in the last piece of legislation we passed. But lets extend that childcare tax credit at least through the end of 2025.
-                                  
-                                  The American Rescue Plan lowered health care premiums for 9 million Americans who buy their coverage under the Affordable Care Act. I know thats really popular on this side of the aisle. [Laughter] But lets make that provision permanent so their premiums dont go back up.
-
-In addition to my Families Plan, Im going to work with Congress to address, this year, other critical priorities for American families. The Affordable Care Act has been a lifeline for millions of Americans, protecting people with preexisting conditions, protecting womens health. And the pandemic has demonstrated how badly-how badly-its needed. Lets lower deductibles for working families on the Affordable Care-in the Affordable Care Act. And lets lower prescription drug costs.
-                                  
-                                  We know how to do this. The last President had that as an objective. We all know how outrageously expensive drugs are in America. In fact, we pay the highest prescription drug prices of anywhere in the world right here in America-nearly three times-for the same drug, nearly three times what other countries pay. We have to change that, and we can.
-                                  
-                                  Lets do what weve always talked about for all the years I was down here in this body-in Congress. Lets give Medicare the power to save hundreds of billions of dollars by negotiating lower drug prescription prices. And by the way, it wont just help people on Medicare, it will lower prescription drug costs for everyone.
-                                  
-                                  And the money we save, which is billions of dollars, can go to strengthen the Affordable Care Act and expand Medicare coverage benefits without costing taxpayers an additional penny. Its within our power to do it; lets do it now. Weve talked about it long enough. Democrats and Republicans, lets get it done this year. This is all about a simple premise: Health care should be a right and not a privilege in America.
-                                  
-                                  So how do we pay for my Jobs and Family Plan? I made it clear, we can do it without increasing the deficits. Lets start with what I will not do: I will not impose any tax increase on people making less than $400,000. Its-but its time for corporate America and the wealthiest 1 percent of Americans to just begin to pay their fair share. Just their fair share.
-
-Sometimes, I have arguments with my friends in the Democratic Party. I think you should be able to become a billionaire and a millionaire, but pay your fair share.
-
-A recent study shows that 55 of the nations biggest corporations paid zero Federal tax last year. Those 55 corporations made in excess of $40 billion in profit. A lot of companies also evade taxes through tax havens in Switzerland and Bermuda and the Cayman Islands. And they benefit from tax loopholes and deductions for offshoring jobs and shifting profits overseas. Its not right.
-
-Were going to reform corporate taxes so they pay their fair share and help pay for the public investments their businesses will benefit from as well. And were going to reward work, not just wealth. We take the top tax bracket for the wealthiest 1 percent of Americans-those making over $400,000 or more-back up to where it was when George W. Bush was President when he started: 39.6 percent. Thats where it was when George W. was President.
-                                  
-                                  Were going to get rid of the loopholes that allow Americans who make more than a million dollars a year and pay a lower tax rate on their capital gains than Americans who receive a paycheck. Were only going to affect three-tenths of 1 percent of all Americans by that action-three-tenths of 1 percent. And the IRS is going to crack down on millionaires and billionaires who cheat on their taxes. Its estimated to be billions of dollars by think tanks that are left, right, and center.
-
-Im not looking to punish anybody. But I will not add a tax burden-additional tax burden to the middle class in this country. Theyre already paying enough. I believe what I propose is fair, fiscally responsible, and it raises revenue to pay for the plans I have proposed and will create millions of jobs that will grow the economy and enhance our financial standing in the country.
-
-When you hear someone say that they dont want to raise taxes on the wealthiest 1 percent or corporate America, ask them: Whose taxes you want to raise instead? Whose are you going to cut?
-                                  
-                                  Look, the big tax cut of 2017, remember, it was supposed to pay for itself-that was how it was sold-and generate vast economic growth. Instead, it added $2 trillion to the deficit. It was a huge windfall for corporate America and those at the very top.
-                                  
-                                  Instead of using the tax saving to raise wages and invest in research and development, it poured billions of dollars into the pockets of CEOs. In fact, the pay gap between CEOs and their workers is now among the largest in history. According to one study, CEOs make 320 times what the average worker in their corporation makes. It used to be in the-below a hundred.
-                                  
-                                  The pandemic has only made things worse. Twenty million Americans lost their job in the pandemic: working and middle class Americans. At the same time, roughly 650 billionaires in America saw their net worth increase by more than $1 trillion, in the same exact period. Let me say it again: 650 people increased their wealth by more than $1 trillion during this pandemic. And theyre now worth more than $4 trillion.
-
-My fellow Americans, trickle-down-trickle-down-economics has never worked, and its time to grow the economy from the bottom and the middle out. You know, theres a broad consensus of economists-left, right, center-and they agree what Im proposing will help create millions of jobs and generate historic economic growth. These are among the highest value investments we can make as a Nation.
-                                  
-                                  Ive often said: Our greatest strength is the power of our example, not just the example of our power. In my conversations with world leaders-and Ive spoken to over 38, 40 of them now-Ive made it known-Ive made it known-that America is back. And you know what they say? The comment that I hear most of all from them is they say: We see America is back, but for how long? But for how long?
-                                  
-                                  My fellow Americans, we have to show not just that were back, but that were back to stay and that we arent going to go it alone. Were going to do it by leading with our allies. No one nation can deal with all the crises of our time-from terrorism, to nuclear proliferation, mass migration, cybersecurity, climate change, as well as experiencing-what were experiencing now with pandemics.
-
-Theres no wall high enough to keep any virus out. And our own vaccine supply, as it grows to meet our needs-and were meeting them-will become an arsenal for vaccines for other countries, just as America was the arsenal of democracy for the world and, in consequence, influenced the world.
-
-But every American will have access before that occurs-every American will have access to be fully covered by COVID-19 from the vaccines we have.
-
-Look, the climate crisis is not our fight alone, its a global fight. The United States accounts, as all of you know, less than 15 percent of carbon emissions. The rest of the world accounts for 85 percent. Thats why I kept my commitment to rejoin the Paris accord-because if we do everything perfectly, its not going to ultimately matter.
-                                  
-                                  I kept my commitment to convene a climate summit right here in America with all of the major economies of the world-China, Russia, India, the European Union-and I said Id do it in my first hundred days.
-
-I want to be very blunt about it: I had-my attempt was to make sure that the world could see there was a consensus, that we are at an inflection point in history. And consensus-the consensus is: If we act to save the planet, we can create millions of jobs and economic growth and opportunity to raise the standard of living to almost everyone around the world. If youve watched any of it-and you were all busy; Im sure you didnt have much time-thats what virtually every nation said, even the ones that arent doing their fair share.
-                                  
-                                  The investments Ive proposed tonight also advance the foreign policy, in my view, that benefits the middle class. That means making sure every nation plays by the same rules in the global economy, including China.
-
-My discussions-in my discussions with President Xi, I told him, We welcome the competition. Were not looking for conflict. But I made absolutely clear that we will defend Americas interests across the board. America will stand up to unfair trade practices that undercut American workers and American industries, like subsidies from state-to state-owned operations and enterprises and the theft of American technology and intellectual property.
-
-I also told President Xi that well maintain a strong military presence in the Indo-Pacific, just as we do with NATO in Europe, not to start a conflict, but to prevent one. I told him what Ive said to many world leaders: that America will not back away from our commitments-our commitment to human rights and fundamental freedoms and to our alliances.
-
-And I pointed out to him: No responsible American President could remain silent when basic human rights are being so blatantly violated. An American President has to represent the essence of what our country stands for. America is an idea, the most unique idea in history: We are created, all of us, equal. Its who we are, and we cannot walk away from that principle and, in fact, say were dealing with the American idea.
-
-With regard to Russia, I know it concerns some of you, but I made very clear to Putin that were not going to seek-excuse me-escalation, but their actions will have consequence if they turn out to be true. And they turned out to be true, so I responded directly and proportionally to Russias interference in our elections and the cyber attacks on our Government and our business. They did both of these things, and I told them we would respond, and we have.
-
-But we can also cooperate when its in our mutual interest. We did it when we extended the New START Treaty on nuclear arms, and were working to do it on climate change. But he understands we will respond.
-
-On Iran and North Korea-nuclear programs that present serious threats to American security and the security of the world-were going to be working closely with our allies to address the threats posed by both of these countries through diplomacy, as well as stern deterrence.
-
-And American leadership means ending the forever war in Afghanistan. We have, without hyperbole, the greatest fighting force in the history of the world. Im the first President in 40 years who knows what it means to have a son serving in a war zone. Today, we have servicemembers serving in the same war zone as their parents did. We have servicemembers in Afghanistan who were not yet born on 9/11.
-
-The war in Afghanistan, as we remember the debates here, were never meant to be multigenerational undertakings of nation-building. We went to Afghanistan to get terrorists-the terrorists who attacked us on 9/11-and we said we would follow Usama bin Laden to the gates of hell to do it. If youve been to the upper Kunar Valley, youve kind of seen the gates of hell. And we delivered justice to bin Laden. We degraded the terrorist threat of Al Qaida in Afghanistan. And after 20 years of value-valor and sacrifice, its time to bring those troops home.
-
-Look, even as we do, we will maintain an over-the-horizon capacity to suppress future threats to the homeland. And make no mistake: In 20 years, terrorists has-terrorism has metastasized. The threat has evolved way beyond Afghanistan. And those of you in the intelligence committees, the foreign relations committee, the defense committees, you know well: We have to remain vigilant against the threats to the United States wherever they come from. Al Qaida and ISIS are in Yemen, Syria, Somalia, other places in Africa, the Middle East, and beyond.
-
-And we wont ignore what our intelligence agencies have determined to be the most lethal terrorist threat to the homeland today: White supremacy is terrorism. Were not going to ignore that either.
-
-My fellow Americans, look, we have to come together to heal the soul of this Nation. It was nearly a year ago, before her fathers funeral, when I spoke with Gianna Floyd, George Floyds young daughter. Shes a little tyke, so I was kneeling down to talk to her so I could look her in the eye. And she looked at me and she said, My daddy changed the world. Well, after the conviction of George Floyds murderer, we can see how right she was if we have the courage to act as a Congress.
-
-Weve all seen the knee of injustice on the neck of Black Americans. Now is our opportunity to make some real progress. The vast majority of men and women wearing the uniform and a badge serve our communities, and they serve them honorably. I know them. I know they want to help meet this moment as well.
-
-My fellow Americans, we have to come together to rebuild trust between law enforcement and the people they serve, to root out systemic racism in our criminal justice system, and to enact police reform in George Floyds name that passed the House already. I know Republicans have their own ideas and are engaged in the very productive discussions with Democrats in the Senate. We need to work together to find a consensus. But lets get it done next month, by the first anniversary of George Floyds death.
-
-The country supports this reform, and Congress should act-should act. We have a giant opportunity to bend to the arc of the moral universe towards justice-real justice. And with the plans outlined tonight, we have a real chance to root out systemic racism that plagues America and American lives in other ways; a chance to deliver real equity-good jobs, good schools, affordable housing, clean air, clean water, being able to generate wealth and pass it down two generations because you have an access to purchase a house. Real opportunities in the lives of more Americans: Black, White, Latino, Asian Americans, Native Americans.
-
-Look, I also want to thank the United States Senate for voting 94 to 1 to pass the COVID-19 Hate Crimes Act to protect Asian Americans and Pacific Islanders. You acted decisively. And you can see on television the viciousness of the hate crimes weve seen over the past year-this past year and for too long. I urge the House to do the same and send that legislation to my desk, which I will gladly, anxiously sign.
-
-I also hope Congress can get to my desk the Equality Act to protect LGBTQ Americans. To all transgender Americans watching at home, especially young people who are so brave, I want you to know your President has your back.
-
-Another thing: Lets authorize the Violence Against Women Act, which has been law for 27 years. Twenty-seven years ago, I wrote it. It will close the-the act that has to be authorized now will close the boyfriend loophole to keep guns out of the hands of abusers. The court order said: This is an abuser. You cant own a gun. Its to close that loophole that existed. You know, its estimated that 50 women are shot and killed by an intimate partner every month in America-50 a month. Lets pass it and save some lives.
-                                  
-                                  And I need not tell anyone this, but gun violence is becoming an epidemic in America. The flag at the White House was still flying at half-mast for the 8 victims in the mass shooting in Georgia when 10 more lives were taken in a mass shooting in Colorado. And, in the week in between those two events, 250 other Americans were shot dead in the streets of America-250 shot dead.
-                                  
-                                  I know how hard it is to make progress on this issue. In the nineties, we passed universal background checks, a ban on assault weapons and high-capacity magazines that hold 100 rounds that can be fired off in seconds. We beat the NRA. Mass shootings and gun violence declined. Check out the report over 10 years. But in the early twenty-2000s, the law expired, and weve seen daily bloodshed since. Im not saying if the law continued, we wouldnt see bloodshed.
-
-More than 2 weeks ago in the Rose Garden, surrounded by some of the bravest people I know-the survivors and families who lost loved ones to gun violence-I laid out several of the Department of Justice actions that are being taken to impact on this epidemic.
-
-One of them is banning so-called ghost guns. These are homemade guns built from a kit that includes directions on how to finish the firearm. The parts have no serial numbers, so they show up at crime scenes, and they cant be traced. The buyers of these ghost gun kits arent required to pass any background check. Anyone, from a criminal or terrorist, could buy this kit and, within 30 minutes, have a weapon thats lethal. But no more.
-                                  
-                                  And I will do everything in my power to protect the American people from this epidemic of gun violence, but its time for Congress to act as well. Look, I dont want to become confrontational, but we need more Senate Republicans to join the overwhelming majority of Democratic colleagues and close the loopholes requiring a background check on purchases of guns. We need a ban on assault weapons and high-capacity magazines. And dont tell me it cant be done. We did it before, and it worked.
-                                  
-                                  Talk to most responsible gun owners and hunters. Theyll tell you theres no possible justification for having 100 rounds in a weapon. What do you think: deer are wearing Kevlar vests? [Laughter] No, whats-theyll tell you that there are too many people today who are able to buy a gun, but shouldnt be able to buy a gun.
-
-These kinds of reasonable reforms have overwhelming support from the American people, including many gun owners. The country supports reform and is-and Congress should act.
-
-This shouldnt be a red or blue issue. And no amendment to the Constitution is absolute. You cant yell Fire! in a crowded theater. From the very beginning, there were certain guns, weapons, that could not be owned by Americans. Certain people could not own those weapons ever. Were not changing the Constitution; were being reasonable. I think this is not a Democrat or Republican issue, I think its an American issue.
-                                  
-                                  And heres what else we can do: Immigration has always been essential to America. Lets end our exhausting war over immigration. For more than 30 years, politicians have talked about immigration reform, and weve done nothing about it. Its time to fix it.
-                                  
-                                  On day one of my Presidency, I kept my commitment and sent a comprehensive immigration bill to the United States Congress. If you believe we need to secure the border, pass it, because it has a lot of money for high-tech border security. If you believe in a pathway to citizenship, pass it so over 11 million undocumented folks-the vast majority are here overstaying visas. Pass it. We can actually-if you actually want to solve a problem, Ive sent a bill to-so take a close look at it.
-
-We have to-also have to get at the root problem of why people are fleeing, particularly to-to our southern border from Guatemala, Honduras, and El Salvador: the violence, the corruption, the gangs, and the political instability, hunger, hurricanes, earthquakes, natural disasters.
-
-When I was President, my President-when I was Vice President, the President asked me to focus on providing the help needed to address the root causes of migration. And it helped keep people in their own countries instead of being forced to leave. The plan was working, but the last administration decided it was not worth it. Im restoring the program and asked Vice President Harris to lead our diplomatic effort to take care of this. I have absolute confidence shell get the job done.
-
-Now, look, if you dont like my plan, lets at least pass what we all agree on. Congress needs to pass legislation this year to finally secure protection for dreamers, the young people who have only known America as their home. And permanent protection for immigrants who are here on temporary protected status who came from countries beset by manmade and natural-made-violence and disaster. As well as a pathway to citizenship for farmworkers who put food on our tables.
-
-Look, immigrants have done so much for America during this pandemic and throughout our history. The country supports immigration reform. We should act. Lets argue over it, lets debate it, but lets act.
-                                  
-                                  And if we truly want to restore the soul of America, we need to protect the sacred right to vote. Most people-more people voted in the last Presidential election than any time in American history, in the middle of the worst pandemic ever. It should be celebrated. Instead, its being attacked. Congress should pass H.R. 1 and the John Lewis Voting Rights Act and send it to my desk right away. The country supports it. The Congress should act now.
-
-Look, in closing, as we gather here tonight, the images of a violent mob assaulting this Capitol, desecrating our democracy, remain vivid in all our minds. Lives were put at risk-many of your lives. Lives were lost. Extraordinary courage was summoned. The insurrection was an existential crisis, a test of whether our democracy could survive. And it did.
-
-But the struggle is far from over. The question of whether our democracy will long endure is both ancient and urgent, as old as our Republic, still vital today. Can our democracy deliver on its promise that all of us, created equal in the image of God, have a chance to lead lives of dignity, respect, and possibility? Can our democracy deliver the most-to the most pressing needs of our people? Can our democracy overcome the lies, anger, hate, and fears that have pulled us apart?
-
-Americas adversaries-the autocrats of the world-are betting we cant. And I promise you, theyre betting we cant. They believe were too full of anger and division and rage. They look at the images of the mob that assaulted the Capitol as proof that the sun is setting on American democracy. But they are wrong. You know it; I know it. But we have to prove them wrong.
-                                  
-                                  We have to prove democracy still works, that our Government still works and we can deliver for our people. In our first hundred days together, weve acted to restore the peoples faith in democracy to deliver. Were vaccinating the Nation. Were creating hundreds of thousands of new jobs. Were delivering real results to people; they can see it and feel it in their own lives.
-
-Opening doors of opportunity, guaranteeing some more fairness and justice, thats the essence of America. Thats democracy in action. Our Constitution opens with the words-as trite as it sounds-We the People. Well, its time to remember that We the People are the Government-you and I. Not some force in a distant capital. Not some powerful force that we have no control over. Its us. Its We the People.
-                                  
-                                  In another era when our democracy was tested, Franklin Roosevelt reminded us, In America, we do our part. We all do our part. Thats all Im asking: that we do our part, all of us. If we do that, we will meet the center challenge of the age by proving that democracy is durable and strong. Autocrats will not win the future. We will. America will. And the future belongs to America.
-                                  
-                                  As I stand here tonight before you, in a new and vital hour of life and democracy of our Nation, and I can say with absolute confidence: I have never been more confident or optimistic about America, not because Im President, because whats happening with the American people.
-                                  
-                                  We have stared into the abyss of insurrection and autocracy, pandemic and pain, and We the People did not flinch. At the very moment our adversaries were certain we would pull apart and fail, we came together. We united. With light and hope, we summoned a new strength, new resolve to position us to win the competition of the 21st century, on our way to a union more perfect, more prosperous, and more just, as one people, one Nation, and one America.
-                                  
-                                  Folks, as I told every world leader Ive ever met with over the years, its never ever, ever been a good bet to bet against America, and it still isnt.
-
-We are the United States of America. There is not a single thing-nothing-nothing beyond our capacity. We can do whatever we set our mind to do if we do it together. So lets begin to get together.
-                                  
-                                  God bless you all, and may God protect our troops. Thank you for your patience."))
-
-#combine sotu datasets
-sotu_final <- rbind(sotu, sotu2)
-
-#combine sotu dataset and biden dataset
-sotu_final <- rbind(sotu_final, sotu_biden)
+}
 
 
 #save dataset as csv
-fwrite(sotu_final, "sotu_final.csv")
+fwrite(sotu_df, "sotu_speeches.csv")
 
 

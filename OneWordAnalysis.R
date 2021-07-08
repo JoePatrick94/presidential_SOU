@@ -36,7 +36,7 @@ speech_tf_idf <- speechwords %>%
 #visualize biden, trump, obama, bush, clinton
 speech_tf_idf %>%
   group_by(president) %>%
-  filter(president %in% c("Biden", "Donald J. Trump", "Barack Obama", "George W. Bush", "William J. Clinton")) %>%
+  filter(president %in% c("George W. Bush", "Donald J. Trump", "James K. Polk", "Andrew Jackson")) %>%
   slice_max(tf_idf, n = 15) %>%
   ungroup() %>%
   ggplot(aes(tf_idf, fct_reorder(word, tf_idf), fill = president)) +
