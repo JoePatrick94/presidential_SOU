@@ -6,38 +6,10 @@ library(rvest)
 library(lubridate)
 library(data.table)
 
-#set working directory
 setwd("~/Personal/presidential_SOU")
 
-
-#Function to get the years active of a president
-get_years_active <- function(SOTU_pagelinks){
-  
-  sotupage <- read_html(SOTU_pagelinks)
-  years_active <- sotupage %>% 
-    html_nodes(".dates") %>%
-    html_text() %>% 
-    gsub("\\s+", "",.)
-  return(years_active)
-}
-
-#Function to get the political party of president
-get_party <- function(presidential_biolinks){
-  biopage <- read_html(presidential_biolinks)
-  party <- biopage %>% html_nodes("#block-system-main :nth-child(9)") %>% html_text()
-  return(party)
-}
-
-#Function to get the SOTU text for each president
-get_speech <- function(SOTU_pagelinks){
-  sotulink <- read_html(SOTU_pagelinks) 
-  text <- sotulink %>% 
-    html_nodes(".field-docs-content") %>% 
-    html_text() %>%
-    str_replace_all("\n","") %>% #remove instances of \n
-    trimws(which = "both")
-  return(text)
-}
+#Load in processing functions
+source("SOTU_processingfunctions.R")
 
 sotu_messages <- data.frame()
 

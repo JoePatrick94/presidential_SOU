@@ -25,7 +25,9 @@ Biden_Speech_Page <- read_html("https://www.presidency.ucsb.edu/documents/addres
     str_replace_all("\n","") %>% #remove instances of \n
     str_replace_all("Audience Members.*The President\\.", "") %>% #Take out text from The Audience. --> The President.
     str_replace_all("The President\\.", "") %>% # Take out text indicating the president is speaking -> The President.
-    trimws(which = "both")
+    trimws(which = "both") %>%
+    str_replace_all("\\.(?=\\w)", " ") %>% # if a period does not have a space after it, replace it with a space
+    str_replace_all("â", "")
 
   
   #Combine rows to the final dataset for each loop
