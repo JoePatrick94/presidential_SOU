@@ -1,5 +1,7 @@
+
+years <- as.character(0:2020)
 my_stop_words <- tibble(word = c(years, "tonight", "america's", "america", "ms", "announcing", "ira's", "guy", "brady",
-                                 "al", "11th", "kayla", "c.j", "ellie", "toâ", "actâ", "92d", "war.we", "nations.we", "nam"))
+                                 "al", "11th", "kayla", "c.j", "ellie", "92d", "nam"))
 
 race_terms <- c("black", "blacks", "african", "africans", "negro", "negros", "hispanic", "hispanics",
                 "latino", "latinos", "mexican", "mexicans", "latinx", "asian", "asians", "orient", "oriental",

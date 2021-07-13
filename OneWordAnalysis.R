@@ -9,11 +9,10 @@ library(textdata)
 sotu <- fread("sotu_final2.csv")
 
 #tokenise dataframe
-singleword <- sotu %>% filter(speech_type == "speech",
-                              party != "Federalist") %>% unnest_tokens(word, text)
-
-#Personal list of stop words
-years <- as.character(0:2020)
+singleword <- sotu %>% 
+  filter(speech_type == "speech",
+         party != "Federalist") %>% 
+  unnest_tokens(word, text)
 
 #remove stop words
 sw_nostop <- singleword %>% 
@@ -21,7 +20,8 @@ sw_nostop <- singleword %>%
   anti_join(my_stop_words)
 
 #create counts of words for all SOTU speeches
-sw_nostop %>% count(word, sort = T) %>% #war is number 8... above peace...
+sw_nostop %>%
+  count(word, sort = T) %>% #war is number 8... above peace...
   slice(1:15) %>%
   ggplot(aes(x = reorder(word, n), y = n)) +
   geom_col(fill = "dodgerblue4") + 
@@ -151,15 +151,22 @@ biden_trump %>%
 
 
 #Sentiment analysis - sentiments scores of speeches over time filled in with party
-fear <- get_sentiments("nrc") %>%
-  filter(sentiment == "fear")
+presidential_sentiment <- sw_nostop %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(year, party, word, sentiment) %>%
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>%
+  mutate(sentiment = positive - negative) %>%
+  group_by(year, party) %>%
+  summarise(sentiment = sum(sentiment))
 
-sw_nostop %>%
-  filter(president == "Joseph R. Biden") %>%
-  inner_join(fear) %>%
-  count(word, sort = T)
-
-
+ggplot(presidential_sentiment, aes(year, sentiment, fill = party)) +
+  geom_col() +
+  scale_fill_manual(values = c("#0015BC", "#E9141D")) +
+  labs(title = "Sentiment Scores of Every SOTU Speech since 1913",
+       x = "Year",
+       y = "Sentiment", 
+       fill = "Party")
+  
 
 
 

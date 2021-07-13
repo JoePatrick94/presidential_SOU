@@ -36,7 +36,8 @@ Biden <- data.frame(president = "Joseph R. Biden",
                     years_active = "2021-Present",
                     party = "Democratic", 
                     speech_type = "speech", 
-                    text, stringsAsFactors = F)
+                    text, 
+                    stringsAsFactors = F)
   
 
 
