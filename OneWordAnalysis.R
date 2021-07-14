@@ -283,3 +283,177 @@ presidential_sentiment %>%
   arrange(-sentiment)
 
 
+#Over time analysis of black key terms
+years_count <- sw_nostop %>%
+  count(year, word, sort = T)
+
+years_tf_idf <- years_count %>%
+  bind_tf_idf(word, year, n)
+
+#counts
+years_tf_idf %>%
+  mutate(black_indicator = ifelse(word %in% black_terms, 1, 0)) %>%
+  filter(black_indicator == 1) %>%
+  complete(year, word, fill = list(n = 0)) %>%
+  group_by(year, black_indicator) %>%
+  summarise(count = sum(n),
+            freq = sum(tf)) %>%
+  ggplot(aes(x = year, y = count)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank())
+
+#frequencies
+years_tf_idf %>%
+  mutate(black_indicator = ifelse(word %in% black_terms, 1, 0)) %>%
+  filter(black_indicator == 1) %>%
+  complete(year, word, fill = list(tf = 0)) %>%
+  group_by(year, black_indicator) %>%
+  summarise(count = sum(n),
+            freq = sum(tf)) %>%
+  ggplot(aes(x = year, y = freq)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank())
+
+#what was said in the 1923 speech
+years_tf_idf %>%
+  mutate(black_indicator = ifelse(word %in% black_terms, 1, 0)) %>%
+  filter(year == 1923,
+         black_indicator == 1)
+
+
+#most used black terms
+sw_nostop %>%
+  filter(word %in% black_terms) %>%
+  count(word, sort = T) %>% #war is number 8... above peace...
+  slice(1:15) %>%
+  ggplot(aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "dodgerblue4") + 
+  coord_flip() +
+  labs(x = "",
+       y = "Frequency of Term",
+       title = "Frequencies of Black/African American Related Terms") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0,30, by = 2)) +
+  theme(panel.grid.minor.x = element_blank())
+
+
+#top six black terms over time
+#counts
+years_tf_idf %>%
+  filter(word %in% c("black", "african", "segregation", "racism", "integration", "reparations")) %>%
+  complete(year, word, fill = list(n = 0)) %>%
+  ggplot(aes(x = year, y = n)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank()) +
+  facet_wrap(.~factor(word, levels = c("black", "african", "segregation", "racism", "integration", "reparations")),
+             scales = "free") +
+  labs(x = "",
+       y = "Count",
+       title = "Counts of Top Six Most Used Black Related Terms Over Time")
+
+#frequencies
+years_tf_idf %>%
+  filter(word %in% c("black", "african", "segregation", "racism", "integration", "reparations")) %>%
+  complete(year, word, fill = list(tf = 0)) %>%
+  ggplot(aes(x = year, y = tf)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank()) +
+  facet_wrap(.~factor(word, levels = c("black", "african", "segregation", "racism", "integration", "reparations")),
+                      scales = "free")
+
+
+
+#Over time analysis of race related key terms
+#counts
+years_tf_idf %>%
+  mutate(race_indicator = ifelse(word %in% race_terms, 1, 0)) %>%
+  filter(race_indicator == 1) %>%
+  complete(year, word, fill = list(n = 0)) %>%
+  group_by(year, race_indicator) %>%
+  summarise(count = sum(n),
+            freq = sum(tf)) %>%
+  ggplot(aes(x = year, y = count)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank()) +
+  labs(x = "",
+       y = "Count",
+       title = "Counts of Any Race/Ethnicity Related Terms Over Time")
+
+#frequencies
+years_tf_idf %>%
+  mutate(race_indicator = ifelse(word %in% race_terms, 1, 0)) %>%
+  filter(race_indicator == 1) %>%
+  complete(year, word, fill = list(tf = 0)) %>%
+  group_by(year, race_indicator) %>%
+  summarise(count = sum(n),
+            freq = sum(tf)) %>%
+  ggplot(aes(x = year, y = freq)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank()) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+       y = "% of SOTU Speech",
+       title = "Frequencies of Any Race/Ethnicity Related Terms Over Time")
+
+#most used race related terms
+sw_nostop %>%
+  filter(word %in% race_terms) %>%
+  count(word, sort = T) %>% #war is number 8... above peace...
+  slice(1:20) %>%
+  ggplot(aes(x = reorder(word, n), y = n)) +
+  geom_col(fill = "dodgerblue4") + 
+  coord_flip() +
+  labs(x = "",
+       y = "Frequency of Term",
+       title = "Frequencies of Race/Ethnicity Related Terms") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0,30, by = 2)) +
+  theme(panel.grid.minor.x = element_blank())
+
+
+#top six black terms over time
+#counts
+years_tf_idf %>%
+  filter(word %in% c("black", "japanese", "asian", "african", "chinese", "native", "indian", "islamic",
+                     "arab", "jewish", "latino", "hispanic")) %>%
+  complete(year, word, fill = list(n = 0)) %>%
+  ggplot(aes(x = year, y = n)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank()) +
+  facet_wrap(.~factor(word, levels = c("black", "japanese", "asian", "african", "chinese", "native", "indian", "islamic",
+                                       "arab", "jewish", "latino", "hispanic")),
+             scales = "free") +
+  labs(x = "",
+       y = "Count",
+       title = "Counts of Top 12 Most Used Race/Ethnicity Related Terms Over Time")
+
+#frequencies
+years_tf_idf %>%
+  filter(word %in% c("black", "african", "segregation", "racism", "integration", "reparations")) %>%
+  complete(year, word, fill = list(tf = 0)) %>%
+  ggplot(aes(x = year, y = tf)) +
+  geom_point() +
+  geom_smooth(se = F) +
+  theme_bw() +
+  theme(panel.grid.minor.y = element_blank()) +
+  facet_wrap(.~factor(word, levels = c("black", "african", "segregation", "racism", "integration", "reparations")),
+             scales = "free")
+
+
+  
+
+
