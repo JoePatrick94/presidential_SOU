@@ -1,10 +1,14 @@
 
 years <- as.character(0:2020)
-my_stop_words <- tibble(word = c(years, "tonight", "america's", "america", "ms", "announcing", "ira's", "guy", "brady",
-                                 "al", "11th", "kayla", "c.j", "ellie", "92d", "nam"))
+leadingzeros <- sprintf('%0.2d', 0:10)
+trailing_M <- paste0(0:10,"m")
+
+my_stop_words <- tibble(word = c(years, leadingzeros, trailing_M, "tonight", "america's", "america", "ms", "announcing", "ira's", "guy", "brady",
+                                 "al", "11th", "kayla", "c.j", "ellie", "92d", "nam", "united", "chargã",
+                                 "00of", "â"))
 
 common_words <- tibble(word = c("world", "american", "people", "americans", "country", "congress", "nation",
-                                "government", "time", "united"))
+                                "government", "time", "united", "public", "national"))
 
 race_terms <- c("black", "blacks", "african", "africans", "negro", "negros", "hispanic", "hispanics",
                 "latino", "latinos", "mexican", "mexicans", "latinx", "asian", "asians", "orient", "oriental",
@@ -13,7 +17,7 @@ race_terms <- c("black", "blacks", "african", "africans", "negro", "negros", "hi
                 "islamic", "jewish")
 
 black_terms <- c("black", "blacks", "african", "africans", "negro", "negros", "afro-american", "afro", "colored",
-                 "reparations", "segregation", "integration", "racist", "racism", "racists")
+                 "reparations", "segregation", "integration", "racist", "racism", "racists", "slave", "slavery", "slaves")
 
 hispanic_terms <- c("hispanic", "hispanics","latino", "latinos", "mexican", "mexicans", "latinx")
 
@@ -23,7 +27,16 @@ asian_terms <- c("asian", "asians", "orient", "oriental","chinese", "chinamen", 
 nativeamerican_terms <- c("indian", "indians", "seminole", "seminoles", "indigenous", "native", "natives",
                           "cherokee", "cherokees", "apache", "apaches")
 
-jewish_terms <- c("jew", "jewish", "jews", "hebrews")
+jewish_terms <- c("jew", "jewish", "jews", "hebrews", "holocaust")
 
 muslim_terms <- c("muslim", "islam", "islamic", "muslims")
+
+healthcare_terms <- c("healthcare", "hospital", "health", "medicare", "medicaid", "medicine", "surgery", "disease",
+                      "virus")
+
+gun_terms <- c("gun", "arms", "2nd", "weapon", "pistol", "rifle")
+
+education_terms <- c("education", "school", "college", "university", "educate")
+
+abortion_terms <- c("abortion", "abort", "fetus")
 
