@@ -1,0 +1,96 @@
+Untitled
+================
+
+## Analysis of the State of the Union Addresses
+
+A State of the Union Address is mandated by Article II, Section 3 of the
+U.S. Constitution. It is through State of the Union where the President
+and the Executive Branch is able to lay out their policy focus and try
+to recommend, or really push, Congress to go in certain policy
+directions.
+
+Over time these addresses have substantially changed. The first several
+State of the Unions by George Washington and John Adams were speeches to
+Congress. Thomas Jefferson, however, began a 100 year tradition of
+giving written addresses. Jefferson felt that the practice needed to be
+changed to written because the oral presentation was too similar to the
+British Monarch practice of addressing new parliament with policy
+mandates rather than policy recommendations. In 1913 Woodrow Wilson
+changed it back to an oral presentation to Congress, which has remained
+the norm ever since.
+
+There are obvious major differences in tone, content, and standard of
+language when something is written versus something that is spoken.
+These differences are shown in the data, with written speeches being on
+average XXX words and spoken speeches being on average of XXX words. The
+longest speech was XXX in XXX at XXX words and the shortest speech was
+XXXX words by XXX in XXXX.
+
+## Getting the Data
+
+All of the the data was scraped from XXX website, where I was able to
+develop a dataset with each SOTU speech and all the necessary metadata,
+such as president name, year of the address, and the political party of
+the president.
+
+\[sotu page\] (.png)
+
+I then was able to analyze the data from several different viewpoints.
+This analysis mostly covers 1-gram and bigram tokens, meaning that each
+row in the data was either a single word or a pair of words. Such a
+format allows us to analyze word frequencies, and word usage over time,
+among other things
+
+    ##          president year      party speech_type      word
+    ## 1: Donald J. Trump 2020 Republican      speech     madam
+    ## 2: Donald J. Trump 2020 Republican      speech   speaker
+    ## 3: Donald J. Trump 2020 Republican      speech      vice
+    ## 4: Donald J. Trump 2020 Republican      speech president
+    ## 5: Donald J. Trump 2020 Republican      speech      lady
+    ## 6: Donald J. Trump 2020 Republican      speech    fellow
+
+## Some Mildly Interesting Facts about SOTU Addresses
+
+What are the most common words, on average per speech (ordered boxplot)
+broken out by speech and written (frequencies will be very different
+based on massive difference in length of addresses)
+
+tf-idf by president - lets show last 6 presidents, but lets see if we
+can build interactive tool, that would be super cool to show the top 15
+words by tf-idf for whatever chosen president
+
+![top 15 most common]()
+
+![top 10 by last 6 presidents]()
+
+![top 20 by party]()
+
+## So how has the State of Black Americans been discussed in SOTUs?
+
+Activism leads to being talked about -&gt; leads to getting attention of
+leaders -&gt; leads to being discussed by leaders -&gt; leads to policy
+decisions and attention to targeted policy -&gt; end note = activism
+matters, awareness matters, silence matters silence = less policy focus
+
+Point out how black people have been discussed. when discussed, is it
+actually for the benefit of them? Pull out the excerpt from abraham
+lincoln - even in a time when black people are fighting for freedom,
+lincoln spends XX lines on bargaining and pursuading white people that
+they will be okay when black people are free.
+
+most discussions about black people has not been around the livelihood
+of black folk. It’s been around the white elites and making sure they
+are happy or talking directly to them.
+
+``` r
+black_terms
+```
+
+    ##  [1] "black"         "blacks"        "african"       "africans"     
+    ##  [5] "afro-american" "afro"          "colored"       "reparations"  
+    ##  [9] "segregation"   "racist"        "racism"        "racists"      
+    ## [13] "slave"         "slavery"       "slaves"        "slaveholding"
+
+![black terms over time]()
+
+![most used black terms]()

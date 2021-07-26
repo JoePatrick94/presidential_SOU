@@ -324,7 +324,6 @@ years_tf_idf %>%
   filter(year == 1923,
          black_indicator == 1)
 
-
 #most used black terms
 sw_nostop %>%
   filter(word %in% black_terms) %>%

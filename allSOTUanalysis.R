@@ -256,7 +256,8 @@ years_tf_idf %>%
   geom_point() +
   geom_smooth(se = F) +
   theme_bw() +
-  theme(panel.grid.minor.y = element_blank())
+  theme(panel.grid.minor.y = element_blank()) +
+  scale_y_continuous(breaks = seq(1800:2020, by = 10))
 
 #frequencies
 years_tf_idf %>%

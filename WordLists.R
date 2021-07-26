@@ -10,14 +10,15 @@ my_stop_words <- tibble(word = c(years, leadingzeros, trailing_M, "tonight", "am
 common_words <- tibble(word = c("world", "american", "people", "americans", "country", "congress", "nation",
                                 "government", "time", "united", "public", "national"))
 
-race_terms <- c("black", "blacks", "african", "africans", "negro", "negros", "hispanic", "hispanics",
+race_terms <- c("black", "blacks", "african", "africans", "hispanic", "hispanics",
                 "latino", "latinos", "mexican", "mexicans", "latinx", "asian", "asians", "orient", "oriental",
                 "chinese", "chinamen", "orientals", "japanese", "indian", "indians", "seminole", "seminoles",
                 "native", "natives", "indigenous", "cherokee", "apache", "apaches", "arab", "arabs", "muslims", "jews",
                 "islamic", "jewish")
 
-black_terms <- c("black", "blacks", "african", "africans", "negro", "negros", "afro-american", "afro", "colored",
-                 "reparations", "segregation", "integration", "racist", "racism", "racists", "slave", "slavery", "slaves")
+black_terms <- c("black", "blacks", "african", "africans", "afro-american", "afro", "colored",
+                 "reparations", "segregation", "racist", "racism", "racists", "slave", "slavery", "slaves",
+                 "slaveholding")
 
 hispanic_terms <- c("hispanic", "hispanics","latino", "latinos", "mexican", "mexicans", "latinx")
 
