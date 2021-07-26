@@ -14,7 +14,7 @@ source("WordLists.R")
 #tokenise dataframe
 singleword <- sotu %>% 
   filter(speech_type == "speech",
-         party != "Federalist") %>% 
+         party %in% c("Democratic", "Republican")) %>% 
   unnest_tokens(word, text)
 
 #remove stop words

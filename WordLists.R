@@ -18,7 +18,7 @@ race_terms <- c("black", "blacks", "african", "africans", "hispanic", "hispanics
 
 black_terms <- c("black", "blacks", "african", "africans", "afro-american", "afro", "colored",
                  "reparations", "segregation", "racist", "racism", "racists", "slave", "slavery", "slaves",
-                 "slaveholding")
+                 "slaveholding", "coloreds", "reparation")
 
 hispanic_terms <- c("hispanic", "hispanics","latino", "latinos", "mexican", "mexicans", "latinx")
 

@@ -1,9 +1,12 @@
 # single token analysis of all SOTUs
 
 #load libraries
+library(tidyverse)
 library(tidytext)
 library(scales)
 library(textdata)
+library(data.table)
+library(plotly)
 
 #Read in data
 sotu <- fread("sotu_final2.csv")
@@ -13,7 +16,40 @@ source("WordLists.R")
 
 #tokenise dataframe
 singleword <- sotu %>% 
-  unnest_tokens(word, text)
+  unnest_tokens(word, text) %>%
+  select(president, year, party, speech_type, word)
+
+#average lengths of written vs spoken speeches
+singleword %>%
+  count(year,president, speech_type) %>%
+  ggplot(aes(x = speech_type, y = n)) +
+  geom_boxplot(fill = "dodgerblue4") +
+  labs(title = "Comparison of Speech and Written SOTU address Lengths",
+       x = "",
+       y = "Length of Speech") +
+  theme_bw() +
+  scale_y_continuous(breaks = seq(0,35000, by = 5000),
+                     labels = comma) +
+  theme(panel.grid.minor.y = element_blank()) +
+  annotate("text",
+           x = 1.75,
+           y = 34000,
+           label = "Jimmy Carter 1980\nand 1981 Speeches",
+           size = 2.5) +
+  ggsave("images/lengthcomparison.png")
+
+
+#get max speeches
+singleword %>%
+  count(year, president, speech_type, sort = T)
+
+#get average length
+singleword %>%
+  count(year, president, speech_type) %>%
+  group_by(speech_type) %>%
+  summarise(mean = mean(n))
+  
+
 
 #remove stop words
 sw_nostop <- singleword %>% 
@@ -22,17 +58,22 @@ sw_nostop <- singleword %>%
   anti_join(common_words)
 
 #create counts of words for all SOTU speeches
-sw_nostop %>%
-  count(word, sort = T) %>% #war is number 8... above peace...
+ sw_nostop %>%
+  count(word, speech_type, sort = T) %>% #war is number 8... above peace...
+  group_by(speech_type) %>%
   slice(1:15) %>%
-  ggplot(aes(x = reorder(word, n), y = n)) +
+  ggplot(aes(x = reorder_within(word, n, speech_type), y = n)) +
   geom_col(fill = "dodgerblue4") + 
   coord_flip() +
   labs(x = "",
        y = "Frequency of Term",
-       title = "Top 15 Words Used in all SOTU Addresses (Written or Spoken)") +
-  theme_bw()
-
+       title = "Top 15 Words Used in all SOTU Addresses") +
+  theme_bw() +
+  facet_wrap(~speech_type, scales = "free") +
+  scale_x_reordered() +
+  ggsave("images/top15_allsotu.png")
+ 
+   
 
 #tf-idf
 speechwords <- singleword %>%
@@ -53,9 +94,11 @@ speech_tf_idf <- speechwords %>%
 #visualize biden, trump, obama, bush, clinton, and bush according to tf-idf
 speech_tf_idf %>%
   group_by(president) %>%
-  filter(president %in% c("Andrew Jackson", "Abraham Lincoln", "John Quincy Adams",
-                          "Warren G. Harding", "William Howard Taft", "Chester A. Arthur")) %>%
-  slice_max(tf_idf, n = 9) %>%
+  filter(president %in% c("George W. Bush", "Donald J. Trump", "Barack Obama",
+                          "Joseph R. Biden", "William J. Clinton", "George Bush")) %>%
+  mutate(president = factor(president, levels = c("George Bush", "William J. Clinton", "George W. Bush",
+                                                  "Barack Obama", "Donald J. Trump", "Joseph R. Biden"))) %>%
+  slice_max(tf_idf, n = 5) %>%
   ungroup() %>%
   ggplot(aes(tf_idf, reorder_within(word, tf_idf, president))) +
   geom_col(fill = "dodgerblue4" ,show.legend = FALSE) +
@@ -65,7 +108,13 @@ speech_tf_idf %>%
        x = "") +
   scale_y_reordered() +
   theme_bw() +
-  theme(panel.grid.major.y = element_blank())
+  theme(panel.grid.major.y = element_blank()) +
+  ggsave("images/top_tfidf_presidents.png")
+
+
+
+#visualize any president speech according to tf-idf with interactive chart
+
 
 #visualize biden, trump, obama, bush, clinton, and bush according to tf
 speech_tf_idf %>%
@@ -103,18 +152,23 @@ speech_tf_idf <- speechwords %>%
 
 #visualize democratic and republican words according to tf-idf
 speech_tf_idf %>%
+  filter(party %in% c("Democratic", "Republican")) %>%
   group_by(party) %>%
-  slice_max(tf_idf, n = 10) %>%
+  slice_max(tf_idf, n = 20) %>%
   ungroup() %>%
-  ggplot(aes(tf_idf, reorder_within(word, tf_idf, party))) +
-  geom_col(show.legend = FALSE, fill = "dodgerblue4") +
+  ggplot(aes(tf_idf, reorder_within(word, tf_idf, party), fill = party)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_manual(values = c("#0015BC", "#E9141D"))+
   facet_wrap(~as.factor(party), ncol = 2, scales = "free") +
   labs(x = "tf-idf", y = NULL) +
   labs(title = "Top 20 Unique Words for Democrat and Republican Speeches",
        x = "") +
   scale_y_reordered() +
   theme_bw() +
-  theme(panel.grid.major.y = element_blank())
+  theme(panel.grid.major.y = element_blank()) +
+  ggsave("images/top_tfidf_party.png")
+
+  
 
 #visualize democratic and republican words according to proportions
 speech_tf_idf %>%
@@ -238,26 +292,50 @@ ggplot(presidential_sentiment, aes(year, sentiment, fill = party)) +
 
 
 #Over time analysis of black key terms
-years_count <- sw_nostop %>%
+
+#change plural black terms to singular to capture true amount
+sw_nostop_blacktermedits <- sw_nostop %>%
+  mutate(word = ifelse(word == "africans", "african",
+                ifelse(word == "slaves", "slave",
+                ifelse(word == "racists", "racist",
+                ifelse(word == "racist", "racism",
+                ifelse(word == "reparation", "reparations", word))))))
+
+years_count <- sw_nostop_blacktermedits %>%
   count(year, word, sort = T)
 
 years_tf_idf <- years_count %>%
   bind_tf_idf(word, year, n)
 
 #counts
-years_tf_idf %>%
+most_common_black_term_by_year <- years_tf_idf %>%
+  filter(word %in% black_terms) %>%
+  group_by(year) %>%
+  slice_max(n,n=1) %>%
+  select(year, word)
+  
+
+years_black <- years_tf_idf %>%
   mutate(black_indicator = ifelse(word %in% black_terms, 1, 0)) %>%
   filter(black_indicator == 1) %>%
   complete(year, word, fill = list(n = 0)) %>%
   group_by(year, black_indicator) %>%
   summarise(count = sum(n),
             freq = sum(tf)) %>%
-  ggplot(aes(x = year, y = count)) +
+  left_join(most_common_black_term_by_year) %>%
+  ggplot(aes(x = year, y = count,
+             text = paste0("Most Common Term: ", word))) +
   geom_point() +
-  geom_smooth(se = F) +
   theme_bw() +
   theme(panel.grid.minor.y = element_blank()) +
-  scale_y_continuous(breaks = seq(1800:2020, by = 10))
+  labs(title = "Use of African American Related Terms Over Time",
+       x = "",
+       y = "Number of Uses in Address")
+
+ggplotly(years_black)
+
+htmlwidgets::saveWidget(as_widget(ggplotly(years_black)),"images/blackterms_overtime.html")
+  
 
 #frequencies
 years_tf_idf %>%
@@ -285,10 +363,9 @@ years_tf_idf %>%
 
 
 #most used black terms
-sw_nostop %>%
+sw_nostop_blacktermedits %>%
   filter(word %in% black_terms) %>%
   count(word, sort = T) %>% #war is number 8... above peace...
-  slice(1:15) %>%
   ggplot(aes(x = reorder(word, n), y = n)) +
   geom_col(fill = "dodgerblue4") + 
   coord_flip() +
@@ -296,39 +373,41 @@ sw_nostop %>%
        y = "Frequency of Term",
        title = "Frequencies of Black/African American Related Terms") +
   theme_bw() +
-  scale_y_continuous(breaks = seq(0,160, by = 10)) +
+  scale_y_continuous(breaks = seq(0,180, by = 20)) +
   theme(panel.grid.minor.x = element_blank())
-
-
-#top 12 black terms over time
-#counts
-years_tf_idf %>%
-  filter(word %in% c("slavery", "slave", "african", "black", "slaves", "colored", "negro", "blacks", "integration", "segregation", "africans", "negros")) %>%
-  complete(year, word, fill = list(n = 0)) %>%
-  ggplot(aes(x = year, y = n)) +
-  geom_point() +
-  geom_smooth(se = F) +
-  theme_bw() +
-  theme(panel.grid.minor.y = element_blank()) +
-  facet_wrap(.~word,
-             scales = "free") +
-  labs(x = "",
-       y = "Count",
-       title = "Counts of Top 12 Most Used Black Related Terms Over Time")
 
 #frequencies
 years_tf_idf %>%
-  filter(word %in% c("slavery", "slave", "african", "black", "slaves", "colored", "negro", "blacks", "integration", "segregation", "africans", "negros")) %>%
+  filter(word %in% c("slave", "slavery", "african", "black", "colored", "reparations", "blacks", "segregation", "slaveholding", "racism")) %>%
   complete(year, word, fill = list(tf = 0)) %>%
   ggplot(aes(x = year, y = tf)) +
   geom_point() +
   geom_smooth(se = F) +
   theme_bw() +
   theme(panel.grid.minor.y = element_blank()) +
-  facet_wrap(.~word, 
-             scales = "free")
+  facet_wrap(.~factor(word,levels = c("slave", "slavery", "african", "black", "colored", "reparations", "blacks", "segregation", "slaveholding", "racism")), 
+             scales = "free") +
+  labs(title = "Usage of Black/African American Terms Over Time in SOTU Addresses",
+       x = "",
+       y = "Term Frequency") +
+  ggsave("images/blackterms_overtime.png")
 
+#use of racism - first use of "racism", "racist", or "racists" was in 1979. Overall, each of these terms have only been used
+# 6 total times in all speeches
+years_tf_idf %>%
+  filter(word == "racism")
 
+#use of reparations - much of the usage is pertaining to other things - check bigram analysis
+years_tf_idf %>% 
+  filter(word == "reparations") %>% 
+  arrange(year)
+
+#use of black and blacks - we find that jimmy carter 
+years_tf_idf %>% 
+  filter(word == "blacks") %>% 
+  arrange(year)
+
+  
 
 #Over time analysis of race related key terms
 #counts

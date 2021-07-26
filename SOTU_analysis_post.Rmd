@@ -36,41 +36,49 @@ sw_nostop <- singleword %>%
 
 ## Analysis of the State of the Union Addresses
 
-A State of the Union Address is mandated by Article II, Section 3 of the U.S. Constitution. It is through State of the Union  where the President and the Executive Branch is able to lay out their policy focus and try to recommend, or really push, Congress to go in certain policy directions.
+A State of the Union Address is mandated by Article II, Section 3 of the U.S. Constitution. It is through State of the Union  where the President and the Executive Branch is able to lay out their policy focus and recommend Congress to go in certain policy directions.
 
-Over time these addresses have substantially changed. The first several State of the Unions by George Washington and John Adams were speeches to Congress. Thomas Jefferson, however, began a 100 year tradition of giving written addresses. Jefferson felt that the practice needed to be changed to written because the oral presentation was too similar to the British Monarch practice of addressing new parliament with policy mandates rather than policy recommendations. In 1913 Woodrow Wilson changed it back to an oral presentation to Congress, which has remained the norm ever since. 
+Over time these addresses have substantially changed. The first twelve State of the Unions, done by George Washington and John Adams, were speeches to Congress. Thomas Jefferson, however, in 1801 began a 112 year tradition of giving written addresses. Jefferson felt that the practice needed to be changed to written because the oral presentation was too similar to the British Monarch practice of addressing new parliament with policy mandates rather than policy recommendations. In 1913 Woodrow Wilson changed it back to an oral presentation to Congress, which has remained the norm ever since. 
 
-There are obvious major differences in tone, content, and standard of language when something is written versus something that is spoken. These differences are shown in the data, with written speeches being on average XXX words and spoken speeches being on average of XXX words. The longest speech was XXX in XXX at XXX words and the shortest speech was XXXX words by XXX in XXXX. 
+There are obvious major differences in tone, content, length, and standard of language when something is written versus something that is spoken. Some of these differences can be seen from quick looks at the data seen below, where written speeches being on average 11,043 words and spoken speeches being on average of 4,918 words. In terms of word frequencies we find that the most common words are pretty similar between the two types of speeches. Interestingly, and also frighteningly and very telling, is that "war" is in the top two for both types of speeches.
+
+![length comparison](\img\posts\SOTU\lengthcomparison.png)
+
+
+![top 15 most common](\img\posts\SOTU\top15_allsotu.png)
 
 
 ## Getting the Data
 
-All of the the data was scraped from XXX website, where I was able to develop a dataset with each SOTU speech and all the necessary metadata, such as president name, year of the address, and the political party of the president. 
+All of the the data was scraped from the American Presidency Project, a non-profit and non-partisan site that compiles all known presidential documents. The site is hosted by UC Santa Barbara and has over 143,000 Presidential and Non-Presidential records. This is a super useful website that can, and should, be used for much more research. It is very easily scrapable and has documents ranging from Donald Trump tweets to fireside chats, to news conferences. 
 
-![sotu page] (\img\posts\SOTU\SOTUwebpage.png)
 
-I then was able to analyze the data from several different viewpoints. This analysis mostly covers 1-gram and bigram tokens, meaning that each row in the data was either a single word or a pair of words. Such a format allows us to analyze word frequencies, and word usage over time, among other things
+![sotu webpage](\img\posts\SOTU\SOTUwebpage.png)
+
+
+This analysis is only looking at State of the Union addresses. Along with obtaining each speech, I collected some necessary metadata, such as president name, year of the address, and the political party of the president. To see exactly how I scraped and cleaned the data, please take a look at my github page and feel free to use the code to pull in and analyze State of the Union Addresses too, or modify it to analyze other text in this awesome website.
+
+
+## Overview of Analysis
+
+This is very high level analysis, nothing too crazy going on here. My entire goal was to understand main topics that each president discussed and to gain an understanding of how certain race related terms have been discussed over time. Therefore, this analysis only covers 1-gram and bigram tokens, otherwise meaning, that I only look at single word and two-word breakdowns of each speech. Naturally, much context is lost when looking at such granularity, which is why I decided to skip out on doing a sentiment analysis. I was not as interested in sentiment, nor did I want to go through the extra layers of analysis to weed out common sentiment issues, such as double negatives. 
 
 ```{r head, echo=F, message=F, warning=F}
 head(sw_nostop)
 ```
 
 
-
 ## Some Mildly Interesting Facts about SOTU Addresses
 
-What are the most common words, on average per speech (ordered boxplot) broken out by speech and written (frequencies will be very different based on massive difference in length of addresses)
+Before diving into the race-related terms, I wanted to see what are the most common terms used by the last 6 presidents and how terms differ based on presidential party. The first graph we see below is the top 10 most unique words used in State of the Union Addresses by the last 6 presidents. Rather than using term frequency, which would show similar words across each president, I used term frequency-inverse document frequency (tf-idf) as the x-axis metric. TF-IDF is metric intended to measure how important a word is to a speech relative to the words in all the other speeches.
 
+What we find is both not surprising, but also very interesting. George W. Bush talked way more about Iraq and terrorists, which is very on brand for the topics that dominated his presidency. A top 5 unique word for Trump was "incredible," which given his love of hyperbole and superfluous qualifiers, is "incredibly" unsurprising. Lastly, in Joe Biden's only address, he focused on the pandemic and the vaccination efforts.
 
-tf-idf by president - lets show last 6 presidents, but lets see if we can build interactive tool, that would be super cool to show the top 15 words by tf-idf for whatever chosen president
+![top 10 by last 6 presidents](\img\posts\SOTU\top_tfidf_presidents.png)
 
-![top 15 most common]()
+Although the results for the party breakout are not very interesting, the fact they are so similar is noteworthy. I am unsure if I find this comforting that both parties are more aligned than we thought, or I find it frightening that both are actually the same and are just equally shitty.
 
-![top 10 by last 6 presidents]()
-
-![top 20 by party]()
-
-
+![top 20 by party](\img\posts\SOTU\top_tfidf_party.png)
 
 ## So how has the State of Black Americans been discussed in SOTUs?
 
@@ -88,5 +96,4 @@ black_terms
 
 ![black terms over time]()
 
-![most used black terms]()
-
+<iframe src = "\img\posts\SOTU\blackterms_overtime.html" height = "800px" width = "100%"></iframe>
