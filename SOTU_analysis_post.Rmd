@@ -34,13 +34,20 @@ sw_nostop <- singleword %>%
 
 ```
 
+## A Quick Note Before You Start Reading
+
+This analysis is a quantitative look at all state of the union addresses and a review of how Black/African American terms have been discussed. I try not to make any leaps in interpretation; I try to keep the analysis strictly quantitative and essentially show what these data have to tell. I am not a sociologist, a historian, political scientist, linguist, nor any other field that may be qualified to do such an analysis, I am a mere data scientist trying to use the skills I've built to extract interesting and topical insights. I urge feedback on this analysis from the community, especially if you do come from a field that may be better suited to contextualize these findings; furthermore, if anyone reads this and would like to collaborate on refining this analysis or on future works, please feel free to reach out. I love working with people from other fields to analyze and try to solve complex problems! 
+
+Now... On to the the show...
+
+
 ## Analysis of the State of the Union Addresses
 
 A State of the Union Address is mandated by Article II, Section 3 of the U.S. Constitution. It is through State of the Union  where the President and the Executive Branch is able to lay out their policy focus and recommend Congress to go in certain policy directions.
 
 Over time these addresses have substantially changed. The first twelve State of the Unions, done by George Washington and John Adams, were speeches to Congress. Thomas Jefferson, however, in 1801 began a 112 year tradition of giving written addresses. Jefferson felt that the practice needed to be changed to written because the oral presentation was too similar to the British Monarch practice of addressing new parliament with policy mandates rather than policy recommendations. In 1913 Woodrow Wilson changed it back to an oral presentation to Congress, which has remained the norm ever since. 
 
-There are obvious major differences in tone, content, length, and standard of language when something is written versus something that is spoken. Some of these differences can be seen from quick looks at the data seen below, where written speeches being on average 11,043 words and spoken speeches being on average of 4,918 words. In terms of word frequencies we find that the most common words are pretty similar between the two types of speeches. Interestingly, and also frighteningly and very telling, is that "war" is in the top two for both types of speeches.
+There are obvious major differences in tone, content, length, and standard of language when something is written versus something that is spoken. Some of these differences can be seen below, where written speeches being on average 11,043 words and spoken speeches being on average of 4,918 words. In terms of word frequencies we find that the most common words are pretty similar between the two types of speeches. Interestingly, and also frighteningly and very telling, is that "war" is in the top two for both types of speeches.
 
 ![length comparison](\img\posts\SOTU\lengthcomparison.png)
 
